@@ -1,0 +1,202 @@
+<html>
+
+<head language="en">
+    <meta charset="utf-8">
+    <script>
+        // TwitchTV blog https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843
+        // call the Twitch API for a channel 
+
+        var twitchTVurl = "https://www.twitch.tv/"
+        var oldTwitchTVAPI = "https://api.twitch.tv/kraken/channels/";
+        var newTwitchTVAPI = "https://api.twitch.tv/kraken/streams/";
+        var clientID = "f55ioj18oatngrd7rqz31sg5lqjxfd";
+
+        var channelArr = [
+            "freecodecamp",
+            "noobs2ninjas",
+            "ESL_SC2",
+            "OgamingSC2",
+            "cretetion",
+            "RobotCaleb",
+            "habathcx",
+            "storbeck",
+            "clashroyale",
+            "dreamhackpubg",
+            "quakechampions",
+            "magic",
+            "dreamhackhs",
+            "dreamleague",
+            "vaporadark",
+            "4wardprogressmadden",
+            "joltzie",
+            "fauxre",
+            "dreamhackcsgo_ru",
+            "Yogscast",
+            "imaqtpie",
+            "AdmiralBulldog",
+            "A1taOda",
+            "Sacriel"
+        ];
+
+        var channelObjArr = [];
+        var twitchAPInew = [];
+        var twitchAPIv5 = [];
+
+        for (i = 0; i < channelArr.length; i++) {
+            // !! important: we need to build a function to localize i
+            // otherwise the asynchronous call will callback for the 
+            // wrong i value. 
+            var j;
+            j = i;
+            (function (j) {
+                twitchAPIv5.push(new XMLHttpRequest());
+                twitchAPIv5[j].open("GET", oldTwitchTVAPI + channelArr[i]);
+                twitchAPIv5[j].setRequestHeader("Client-ID", clientID);
+                twitchAPIv5[j].send();
+
+                twitchAPInew.push(new XMLHttpRequest());
+                twitchAPInew[j].open("GET", newTwitchTVAPI + channelArr[i]);
+                twitchAPInew[j].setRequestHeader("Client-ID", clientID);
+                twitchAPInew[j].send();
+
+                // build an object for ever channel
+                channelObjArr.push(new Object());
+                channelObjArr[j].display_name = channelArr[i];
+                channelObjArr[j].url = twitchTVurl + channelArr[i];
+
+                // populate that objects with properties from the old API
+                twitchAPIv5[j].onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var temp0 = new Object();
+                        temp0 = JSON.parse(this.response);
+                        channelObjArr[j].logo = temp0.logo;
+                        channelObjArr[j].description = temp0.status;
+                    }
+
+                    twitchAPInew[j].onreadystatechange = function () {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var temp1 = new Object();
+                            temp1 = JSON.parse(this.response);
+                            //create a channelObjArr[i] with properties from both twitchAPInew[i] and twitchAPIv5[i]
+                            if (temp1.stream == null) {
+                                channelObjArr[j].status = "offline";
+                            }
+                            else {
+                                channelObjArr[j].id = temp1.stream._id;
+                                channelObjArr[j].status = temp1.stream.stream_type;
+                                channelObjArr[j].description = temp1.stream.channel.status;
+                                channelObjArr[j].updated_at = temp1.stream.channel.updated_at;
+                                channelObjArr[j].video_banner = temp1.stream.channel.video_banner;
+                            }
+                            console.log(channelObjArr[j].display_name, channelObjArr[j].url);
+                            var htmlCode = "<div class='wrapper'>";
+                            htmlCode += "<img class='logo'  src='" + channelObjArr[j].logo + "' alt = 'channel logo' >";
+                            htmlCode += "<div class='status' >" + channelObjArr[j].status + "</div>";
+                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class = 'name-box' >" + channelObjArr[j].display_name + "</div></a>";
+                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class='description-box'>" + channelObjArr[j].description + "</div></a>";
+                            htmlCode += "</div>";
+
+                            var d1 = document.getElementById('total-wrapper');
+                            d1.insertAdjacentHTML('beforeend', htmlCode);
+                        }
+                    };
+                }
+            })(j);
+        };
+    </script>
+
+    <style>
+        body {
+            align-content: center;
+            justify-content: center;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: rgb(75, 75, 75);
+            color: white;
+            word-wrap: break-word;
+            word-break: break-all;
+
+        }
+
+        h1 {
+            align-content: center;
+        }
+
+        a {
+            color: black;
+            text-decoration: none;
+        }
+
+        img {
+            border-radius: 10px;
+            border: solid;
+            border-color: rgb(226, 224, 224);
+            border-width: 1px;
+        }
+
+        footer {
+            margin-top: 20px;
+
+        }
+
+        .total-wrapper {
+            border-radius: 10px;
+            text-align: left;
+            font-size: small;
+            margin: 10px;
+            color: black;
+
+        }
+
+        .wrapper {
+            background-color: rgb(226, 224, 224);
+            display: grid;
+            grid-template-columns: 50px 70px 1fr 3fr;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 0px;
+            border-top-left-radius: 10px;
+            align-items: center;
+        }
+
+        .wrapper:first-child {
+            border-top-right-radius: 10px;
+        }
+
+        .wrapper:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+        .wrapper:hover {
+            background-color: rgb(168, 168, 168);
+        }
+
+        .status,
+        .name-box,
+        .description-box {
+            padding-left: 10px;
+        }
+
+        .logo {
+            width: 50px;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>TwitchTV Feed 2</h1>
+    <h2>a freecodecamp project</h2>
+    <div class="total-wrapper" id="total-wrapper">
+        <!-- TEMPLATE
+            <img class="logo" src="https://static-cdn.jtvnw.net/jtv_user_pictures/freecodecamp-profile_image-d9514f2df0962329-300x300.png"
+                alt="fcc logo">
+            <div class="status">online</div>
+            <div class="name-box">name</div>
+            <div class="description-box">description</div>
+        -->
+    </div>
+</body>
+
+<footer>Coded in vanilla JS.</footer>
+
+</html>
