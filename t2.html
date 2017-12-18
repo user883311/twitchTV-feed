@@ -14,7 +14,7 @@
         var channelArr = [
             "freecodecamp",
             "noobs2ninjas",
-            "ESL_SC2",
+            "ESL_SC2"] /*
             "OgamingSC2",
             "cretetion",
             "RobotCaleb",
@@ -36,7 +36,7 @@
             "AdmiralBulldog",
             "A1taOda",
             "Sacriel"
-        ];
+        ]; */
 
         var channelObjArr = [];
         var twitchAPInew = [];
@@ -54,53 +54,42 @@
                 twitchAPIv5[j].setRequestHeader("Client-ID", clientID);
                 twitchAPIv5[j].send();
 
-                twitchAPInew.push(new XMLHttpRequest());
-                twitchAPInew[j].open("GET", newTwitchTVAPI + channelArr[i]);
-                twitchAPInew[j].setRequestHeader("Client-ID", clientID);
-                twitchAPInew[j].send();
-
                 // build an object for ever channel
                 channelObjArr.push(new Object());
                 channelObjArr[j].display_name = channelArr[i];
                 channelObjArr[j].url = twitchTVurl + channelArr[i];
 
-                // populate that objects with properties from the old API
                 twitchAPIv5[j].onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
-                        var temp0 = new Object();
-                        temp0 = JSON.parse(this.response);
-                        channelObjArr[j].logo = temp0.logo;
-                        channelObjArr[j].description = temp0.status;
-                    }
+                        var result = JSON.parse(this.response);
+                        //console.log(result);
 
-                    twitchAPInew[j].onreadystatechange = function () {
-                        if (this.readyState == 4 && this.status == 200) {
-                            var temp1 = new Object();
-                            temp1 = JSON.parse(this.response);
-                            //create a channelObjArr[i] with properties from both twitchAPInew[i] and twitchAPIv5[i]
-                            if (temp1.stream == null) {
-                                channelObjArr[j].status = "offline";
-                            }
-                            else {
-                                channelObjArr[j].id = temp1.stream._id;
-                                channelObjArr[j].status = temp1.stream.stream_type;
-                                channelObjArr[j].description = temp1.stream.channel.status;
-                                channelObjArr[j].updated_at = temp1.stream.channel.updated_at;
-                                channelObjArr[j].video_banner = temp1.stream.channel.video_banner;
-                            }
-                            console.log(channelObjArr[j].display_name, channelObjArr[j].url);
-                            var htmlCode = "<div class='wrapper'>";
-                            htmlCode += "<img class='logo'  src='" + channelObjArr[j].logo + "' alt = 'channel logo' >";
-                            htmlCode += "<div class='status' >" + channelObjArr[j].status + "</div>";
-                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class = 'name-box' >" + channelObjArr[j].display_name + "</div></a>";
-                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class='description-box'>" + channelObjArr[j].description + "</div></a>";
-                            htmlCode += "</div>";
+                        channelObjArr[j].id = result._id;
+                        //channelObjArr[j].status = result.status;
+                        channelObjArr[j].description = result.status;
+                        channelObjArr[j].updated_at = result.updated_at;
+                        channelObjArr[j].video_banner = result.video_banner;
 
-                            var d1 = document.getElementById('total-wrapper');
-                            d1.insertAdjacentHTML('beforeend', htmlCode);
+                        channelObjArr[j].url = result.url;
+                        channelObjArr[j].logo = result.logo;
+                        if (false) {
+                            channelObjArr[j].status = "offline";
                         }
-                    };
+
+                        //console.log(channelObjArr[j]);
+                        var htmlCode = "<div class='wrapper'>";
+                        htmlCode += "<img class='logo'  src='" + channelObjArr[j].logo + "' alt = 'channel logo' >";
+                        htmlCode += "<div class='status' >" + channelObjArr[j].status + "</div>";
+                        htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class = 'name-box' >" + channelObjArr[j].display_name + "</div></a>";
+                        htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class='description-box'>" + channelObjArr[j].description + "</div></a>";
+                        htmlCode += "</div>";
+
+                        var d1 = document.getElementById('total-wrapper');
+                        d1.insertAdjacentHTML('beforeend', htmlCode);
+                    }
                 }
+
+
             })(j);
         };
     </script>
