@@ -5,7 +5,6 @@
     <script>
         // TwitchTV blog https://blog.twitch.tv/client-id-required-for-kraken-api-calls-afbb8e95f843
         // call the Twitch API for a channel 
-
         var twitchTVurl = "https://www.twitch.tv/"
         var oldTwitchTVAPI = "https://api.twitch.tv/kraken/channels/";
         var newTwitchTVAPI = "https://api.twitch.tv/kraken/streams/";
@@ -13,8 +12,8 @@
 
         var channelArr = [
             "freecodecamp",
-            "noobs2ninjas",
             "ESL_SC2",
+            "noobs2ninjas",
             "OgamingSC2",
             "cretetion",
             "RobotCaleb",
@@ -39,72 +38,117 @@
         ];
 
         var channelObjArr = [];
-        var twitchAPInew = [];
-        var twitchAPIv5 = [];
+        var newTwitchTVAPIArr = [];
+        var twitchAPIv5Arr = [];
 
-        for (i = 0; i < channelArr.length; i++) {
-            // !! important: we need to build a function to localize i
-            // otherwise the asynchronous call will callback for the 
-            // wrong i value. 
-            var j;
-            j = i;
-            (function (j) {
-                twitchAPIv5.push(new XMLHttpRequest());
-                twitchAPIv5[j].open("GET", oldTwitchTVAPI + channelArr[i]);
-                twitchAPIv5[j].setRequestHeader("Client-ID", clientID);
-                twitchAPIv5[j].send();
+        document.onreadystatechange = function () {
+            if (document.readyState === "interactive") {
+                for (i = 0; i < channelArr.length; i++) {
+                    // DOM elements creation 
+                    var wrapperBox = document.createElement("div");
+                    wrapperBox.id = "wrapper" + i;
+                    wrapperBox.className = "wrapper";
+                    document.getElementById("total-wrapper").appendChild(wrapperBox);
 
-                twitchAPInew.push(new XMLHttpRequest());
-                twitchAPInew[j].open("GET", newTwitchTVAPI + channelArr[i]);
-                twitchAPInew[j].setRequestHeader("Client-ID", clientID);
-                twitchAPInew[j].send();
+                    var logoBox = document.createElement("img");
+                    logoBox.className = "logo";
+                    logoBox.id = "logo" + i;
+                    logoBox.src = "#";
+                    logoBox.alt = "channel logo";
+                    document.getElementById("wrapper" + i).appendChild(logoBox);
 
-                // build an object for ever channel
-                channelObjArr.push(new Object());
-                channelObjArr[j].display_name = channelArr[i];
-                channelObjArr[j].url = twitchTVurl + channelArr[i];
+                    var statusBox = document.createElement("a");
+                    statusBox.className = "status";
+                    statusBox.id = "status" + i;
+                    statusBox.href = "#";
+                    statusBox.innerHTML = "loading..."
+                    document.getElementById("wrapper" + i).appendChild(statusBox);
 
-                // populate that objects with properties from the old API
-                twitchAPIv5[j].onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200) {
-                        var temp0 = new Object();
-                        temp0 = JSON.parse(this.response);
-                        channelObjArr[j].logo = temp0.logo;
-                        channelObjArr[j].description = temp0.status;
-                    }
+                    var nameBox = document.createElement("a");
+                    nameBox.href = "#";
+                    nameBox.id = "name" + i;
+                    nameBox.className = "name";
+                    nameBox.innerHTML = "loading...";
+                    document.getElementById("wrapper" + i).appendChild(nameBox);
 
-                    twitchAPInew[j].onreadystatechange = function () {
-                        if (this.readyState == 4 && this.status == 200) {
-                            var temp1 = new Object();
-                            temp1 = JSON.parse(this.response);
-                            //create a channelObjArr[i] with properties from both twitchAPInew[i] and twitchAPIv5[i]
-                            if (temp1.stream == null) {
-                                channelObjArr[j].status = "offline";
+                    var descriptionBox = document.createElement("a");
+                    descriptionBox.href = "#";
+                    descriptionBox.id = "description" + i;
+                    descriptionBox.className = "description";
+                    descriptionBox.innerHTML = "loading...";
+                    document.getElementById("wrapper" + i).appendChild(descriptionBox);
+                    // LET'S FILL THESE DOM ELEMENTS WITH DATA
+                    (function (i) {
+                        // data I can already push to the page, prior to API calls
+                        channelObjArr.push(new Object());
+                        channelObjArr[i].display_name = channelArr[i];
+                        nameBox.innerHTML = channelObjArr[i].display_name;
+
+                        channelObjArr[i].url = twitchTVurl + channelArr[i];
+                        logoBox.href = channelObjArr[i].url;
+                        nameBox.href = channelObjArr[i].url;
+                        statusBox.href = channelObjArr[i].url;
+                        descriptionBox.href = channelObjArr[i].url;
+
+                        // API CALLS TIME! 
+                        twitchAPIv5Arr.push(new XMLHttpRequest());
+                        twitchAPIv5Arr[i].open("GET", oldTwitchTVAPI + channelArr[i]);
+                        twitchAPIv5Arr[i].setRequestHeader("Client-ID", clientID);
+                        twitchAPIv5Arr[i].send();
+
+                        twitchAPIv5Arr[i].onreadystatechange = function () {
+                            if (this.readyState == 4 && this.status == 200) {
+                                var result = JSON.parse(this.response);
+                                // console.log("result", result);
+                                channelObjArr[i].id = result._id;
+                                channelObjArr[i].description = result.status;
+                                channelObjArr[i].updated_at = result.updated_at;
+                                channelObjArr[i].video_banner = result.video_banner;
+
+                                channelObjArr[i].url = result.url;
+                                channelObjArr[i].logo = result.logo;
+                                if (false) {
+                                    channelObjArr[i].status = "offline";
+                                }
+
+                                document.getElementById("logo" + i).src = channelObjArr[i].logo;
+                                document.getElementById("status" + i).innerHTML = channelObjArr[i].status; // offline/online
+                                document.getElementById("description" + i).innerHTML = channelObjArr[i].description;
                             }
-                            else {
-                                channelObjArr[j].id = temp1.stream._id;
-                                channelObjArr[j].status = temp1.stream.stream_type;
-                                channelObjArr[j].description = temp1.stream.channel.status;
-                                channelObjArr[j].updated_at = temp1.stream.channel.updated_at;
-                                channelObjArr[j].video_banner = temp1.stream.channel.video_banner;
-                            }
-                            console.log(channelObjArr[j].display_name, channelObjArr[j].url);
-                            var htmlCode = "<div class='wrapper'>";
-                            htmlCode += "<img class='logo'  src='" + channelObjArr[j].logo + "' alt = 'channel logo' >";
-                            htmlCode += "<div class='status' >" + channelObjArr[j].status + "</div>";
-                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class = 'name-box' >" + channelObjArr[j].display_name + "</div></a>";
-                            htmlCode += "<a href='" + channelObjArr[j].url + "'>" + "<div class='description-box'>" + channelObjArr[j].description + "</div></a>";
-                            htmlCode += "</div>";
-
-                            var d1 = document.getElementById('total-wrapper');
-                            d1.insertAdjacentHTML('beforeend', htmlCode);
                         }
-                    };
-                }
-            })(j);
-        };
-    </script>
+                    })(i);
 
+                    (function (i) {
+                        // THIS API HAS DATA ONLY IF THE CHANNEL IS ONLINE / OFFLINE 
+                        newTwitchTVAPIArr.push(new XMLHttpRequest());
+                        newTwitchTVAPIArr[i].open("GET", newTwitchTVAPI + channelArr[i]);
+                        newTwitchTVAPIArr[i].setRequestHeader("Client-ID", clientID);
+                        newTwitchTVAPIArr[i].send();
+
+                        newTwitchTVAPIArr[i].onreadystatechange = function () {
+                            if (this.readyState == 4 && this.status == 200) {
+                                var result2 = JSON.parse(this.response);
+                                // console.log("result2", result2);
+
+                                if (result2.stream == null) {
+                                    // console.log("result2.stream == null");
+                                    channelObjArr[i].status = "offline";
+                                }
+                                else {
+                                    // console.log("result2.stream != null");
+                                    channelObjArr[i].status = "online";
+                                }
+                                document.getElementById("status" + i).innerHTML = channelObjArr[i].status; // offline/online
+                                //console.log("channelObjArr[i]", channelObjArr[i]);
+                            }
+                        }
+                    })(i);
+                };
+
+            }
+        }
+
+    </script>
     <style>
         body {
             align-content: center;
@@ -115,7 +159,6 @@
             color: white;
             word-wrap: break-word;
             word-break: break-all;
-
         }
 
         h1 {
@@ -125,9 +168,10 @@
         a {
             color: black;
             text-decoration: none;
+            padding-left: 10px;
         }
 
-        img {
+        .logo {
             border-radius: 10px;
             border: solid;
             border-color: rgb(226, 224, 224);
@@ -136,7 +180,6 @@
 
         footer {
             margin-top: 20px;
-
         }
 
         .total-wrapper {
@@ -145,7 +188,7 @@
             font-size: small;
             margin: 10px;
             color: black;
-
+            width: minmax(200px, 1fr);
         }
 
         .wrapper {
@@ -156,6 +199,7 @@
             border-bottom-right-radius: 0px;
             border-top-left-radius: 10px;
             align-items: center;
+            
         }
 
         .wrapper:first-child {
@@ -170,12 +214,6 @@
             background-color: rgb(168, 168, 168);
         }
 
-        .status,
-        .name-box,
-        .description-box {
-            padding-left: 10px;
-        }
-
         .logo {
             width: 50px;
             height: auto;
@@ -184,19 +222,11 @@
 </head>
 
 <body>
-    <h1>TwitchTV Feed 2</h1>
+    <h1>TwitchTV Feed 3</h1>
     <h2>a freecodecamp project</h2>
     <div class="total-wrapper" id="total-wrapper">
-        <!-- TEMPLATE
-            <img class="logo" src="https://static-cdn.jtvnw.net/jtv_user_pictures/freecodecamp-profile_image-d9514f2df0962329-300x300.png"
-                alt="fcc logo">
-            <div class="status">online</div>
-            <div class="name-box">name</div>
-            <div class="description-box">description</div>
-        -->
     </div>
 </body>
-
 <footer>Coded in vanilla JS.</footer>
 
 </html>
