@@ -123,12 +123,12 @@
                                 var result2 = JSON.parse(this.response);
                                 if (result2.stream == null) {
                                     channelObjArr[i].status = "offline";
-                                    document.getElementById("status"+i).style.color = "rgba(255, 0, 0, 0.555)";
+                                    document.getElementById("status" + i).style.color = "rgba(255, 0, 0, 0.555)";
 
                                 }
                                 else {
                                     channelObjArr[i].status = "online";
-                                    document.getElementById("status"+i).style.color = "green";
+                                    document.getElementById("status" + i).style.color = "green";
                                 }
                                 document.getElementById("status" + i).innerHTML = channelObjArr[i].status; // offline/online
                             }
@@ -193,7 +193,7 @@
             border-bottom-right-radius: 0px;
             border-top-left-radius: 10px;
             align-items: center;
-            border-style:solid;
+            border-style: solid;
             border-width: 1px;
             border-color: rgb(75, 75, 75);
 
